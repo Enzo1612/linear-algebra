@@ -29,6 +29,12 @@ class Vector:
 
     def __rmul__(self, scalar:float) -> 'Vector':
         return self.__mul__(scalar)
+    
+    def __len__(self):
+        return (len(self.coor))
+    
+    def __getitem__(self, i):
+        return self.coor[i]
 
     def dot(self, v2: 'Vector') -> float:
         self.check_len(v2)
@@ -37,4 +43,6 @@ class Vector:
     @property
     def norm(self) -> float:
         return sqrt(self.dot(self))
+    
+
 
