@@ -3,8 +3,28 @@ from typing import List
 
 
 class Vector:
+    """A mathematical vector with basic operations.
+    
+    Supports addition, subtraction, scalar multiplication, dot product,
+    and norm calculations.
+    """
+    
     def __init__(self, coor:List[float]):
-        self.coor = list(coor)
+        """Initialize a vector with coordinates.
+        
+        Args:
+            coor (List[float]): List of coordinate values.
+        """
+        self._coor = list(coor)
+
+    @property
+    def coor(self) -> List[float]:
+        """Get the vector coordinates.
+        
+        Returns:
+            List[float]: The coordinate values.
+        """
+        return self._coor
     
     def check_len(self, v2: 'Vector'):
         """
@@ -16,8 +36,8 @@ class Vector:
         Raises:
             ValueError: If dimensions do not match
         """
-        if (len(self.coor) != len(v2.coor)):
-            raise ValueError()
+        if len(self) != len(v2):
+            raise ValueError("Vectors must have the same dimension")
         
     def __repr__(self):
         """
@@ -33,6 +53,8 @@ class Vector:
         Args: 
             v2 (Vector): The vector from which we want to compare coordinates with self's coordinates.
         """
+        if not isinstance(v2, Vector):
+            return NotImplemented
         return self.coor == v2.coor
 
     def __add__(self, v2: 'Vector') -> 'Vector':
@@ -81,13 +103,22 @@ class Vector:
         """
         Returns the length of the Vector coordinates.
         """
-        return (len(self.coor))
+        return (len(self._coor))
     
-    def __getitem__(self, i):
+    def __getitem__(self, i:int):
         """
         Returns item i of the coordinates of the Vector.
         """
-        return self.coor[i]
+        return self._coor[i]
+    
+    def __setitem__(self, i:int, coor:float):
+        """Set the value at index i.
+        
+        Args:
+            i (int): The index to set.
+            coor (float): The new value.
+        """
+        self._coor[i] = coor
 
     def dot(self, v2: 'Vector') -> float:
         """
@@ -107,6 +138,3 @@ class Vector:
         Returns the norm of a vector (square root of the dot product of the vector and itself).
         """
         return sqrt(self.dot(self))
-    
-
-

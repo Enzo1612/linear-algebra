@@ -16,7 +16,9 @@ A minimal, pure-Python implementation of core Linear Algebra primitives, built f
 
 - **Structure:** Row-major storage using `Vector` objects.
 - **Access:** `row(i)` and computed `col(j)` accessors.
+- **Arithmetic:** Addition (`+`), Subtraction (`-`), Scalar Multiplication (`*`, including `3 * M`).
 - **Multiplication ($Ax$):** Implements Matrix-Vector multiplication using the **Row Picture** (Dot product of each row with vector $x$).
+- **Multiplication ($AB$):** Implements Matrix-Matrix multiplication.
 
 ## Usage
 
@@ -41,4 +43,19 @@ print(b)
 
 # 4. Check Norm
 print(b.norm)
+# Output: 30.066592756745816
+
+# 5. Matrix arithmetic
+M1 = Matrix([[1, 2], [3, 4]])
+M2 = Matrix([[5, 6], [7, 8]])
+
+# Addition and subtraction
+M3 = M1 + M2  # Matrix([[6, 8], [10, 12]])
+M4 = M1 - M2  # Matrix([[-4, -4], [-4, -4]])
+
+# Scalar multiplication
+M5 = 2 * M1   # Matrix([[2, 4], [6, 8]])
+
+# Matrix-Matrix multiplication
+M6 = M1 @ M2  # Matrix([[19, 22], [43, 50]])
 ```
