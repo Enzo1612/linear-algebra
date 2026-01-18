@@ -34,3 +34,32 @@ def test_matmul_dimension_mismatch():
     v = Vector([1, 2, 3])        # 3x1
     with pytest.raises(ValueError):
         A @ v
+
+def test_matrix_matrix_multiplication():
+    A = Matrix([[1, 2], [3, 4]])
+    B = Matrix([[5, 6], [7, 8]])
+    C = A @ B
+    assert C[0] == pytest.approx([19, 22])
+    assert C[1] == pytest.approx([43, 50])
+
+def test_solve_with_pivoting_zero_pivot_case():
+    # Requires a row swap to avoid zero pivot
+    A = Matrix([[0, 1], [1, 1]])
+    b = Vector([1, 2])
+    x = A.solve(b)
+    assert x.coords == pytest.approx([1.0, 1.0])
+
+def test_determinant_value_and_sign():
+    # Basic determinant
+    B = Matrix([[1, 2], [3, 4]])
+    assert B.det == pytest.approx(-2.0)
+
+    # Permutation matrix with one swap -> det = -1
+    P = Matrix([[0, 1], [1, 0]])
+    assert P.det == pytest.approx(-1.0)
+
+def test_determinant_raises_on_singular():
+    # Singular matrix (rows are linearly dependent)
+    S = Matrix([[1, 2], [2, 4]])
+    with pytest.raises(ValueError):
+        _ = S.det

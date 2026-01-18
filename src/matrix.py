@@ -60,14 +60,19 @@ class Matrix:
     
     def __matmul__(self, x):
         """
-        Computes the multiplication of a Matrix and a Vector. (row dot x | For every row in the matrix).
-        
+        Matrix multiplication.
+
+        Supports:
+        - Matrix–Vector: row-wise dot with `x` (length must equal number of columns).
+        - Matrix–Matrix: classical product where `(A @ B)[i, j] = row_i(A) · col_j(B)`.
+
         Args:
-            x (Vector): The vector to Multiply the matrix by. Vector length must be the same as the matrix's number of cols.
-        
+            x (Vector | Matrix): The right-hand operand.
+
         Raises:
-            ValueError: If the vector length is not the same as the matrix's number of columns.
-            ValueError: If the matrix 1 columns dimensions don't match the matrix 2 rows dimensions
+            ValueError: If `x` is a `Vector` and its length differs from the matrix's column count.
+            ValueError: If `x` is a `Matrix` and A's column count != B's row count.
+            TypeError: If `x` is neither `Vector` nor `Matrix`.
         """
         if isinstance(x, Vector):
             m, n = self.shape
