@@ -9,16 +9,16 @@ class Vector:
     and norm calculations.
     """
     
-    def __init__(self, coor:List[float]):
+    def __init__(self, coords:List[float]):
         """Initialize a vector with coordinates.
         
         Args:
-            coor (List[float]): List of coordinate values.
+            coords (List[float]): List of coordinate values.
         """
-        self._coor = list(coor)
+        self._coor = list(coords)
 
     @property
-    def coor(self) -> List[float]:
+    def coords(self) -> List[float]:
         """Get the vector coordinates.
         
         Returns:
@@ -45,7 +45,7 @@ class Vector:
 
         Returns: A string representing the vector coordinates.
         """
-        return f"Vector({self.coor})"
+        return f"Vector({self.coords})"
         
     def __eq__(self, v2: 'Vector'):
         """
@@ -55,7 +55,7 @@ class Vector:
         """
         if not isinstance(v2, Vector):
             return NotImplemented
-        return self.coor == v2.coor
+        return self.coords == v2.coords
 
     def __add__(self, v2: 'Vector') -> 'Vector':
         """ 
@@ -67,7 +67,7 @@ class Vector:
             ValueError: If dimensions are not the sames.
         """
         self.check_len(v2)
-        return Vector([a + b for a, b in zip(self.coor, v2.coor)])
+        return Vector([a + b for a, b in zip(self.coords, v2.coords)])
 
     def __sub__(self, v2:'Vector') -> 'Vector':
         """
@@ -79,7 +79,7 @@ class Vector:
             ValueError: If dimensions are not the same.
         """
         self.check_len(v2)
-        return Vector([a - b for a, b in zip(self.coor, v2.coor)])
+        return Vector([a - b for a, b in zip(self.coords, v2.coords)])
 
     def __mul__(self, scalar: float) -> 'Vector':
         """
@@ -88,7 +88,7 @@ class Vector:
         Args:
             scalar (float)
         """
-        return Vector([a * scalar for a in self.coor])
+        return Vector([a * scalar for a in self.coords])
 
     def __rmul__(self, scalar:float) -> 'Vector':
         """
@@ -99,6 +99,20 @@ class Vector:
         """
         return self.__mul__(scalar)
     
+    def __truediv__(self, scalar:float) -> 'Vector':
+        """
+        Computes the element-wise true division of a vector by a scalar.
+
+        Args:
+            scalar(float)
+        
+        Raises:
+            ValueError: If scalar = 0
+        """
+        if scalar == 0:
+            raise ValueError("Can't divide by 0!")
+        return Vector([a / scalar for a in self.coords])
+
     def __len__(self):
         """
         Returns the length of the Vector coordinates.
@@ -111,14 +125,14 @@ class Vector:
         """
         return self._coor[i]
     
-    def __setitem__(self, i:int, coor:float):
+    def __setitem__(self, i:int, coords:float):
         """Set the value at index i.
         
         Args:
             i (int): The index to set.
-            coor (float): The new value.
+            coords (float): The new value.
         """
-        self._coor[i] = coor
+        self._coor[i] = coords
 
     def dot(self, v2: 'Vector') -> float:
         """
@@ -130,7 +144,10 @@ class Vector:
             ValueError: If dimensions are not the same.
         """
         self.check_len(v2)
-        return sum(a * b for a, b in zip(self.coor, v2.coor))
+        return sum(a * b for a, b in zip(self.coords, v2.coords))
+    
+    def copy(self) -> 'Vector':
+        return Vector(self.coords[:])
 
     @property
     def norm(self) -> float:

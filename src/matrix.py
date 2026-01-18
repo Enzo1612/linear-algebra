@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from src.vector import Vector
 
 
@@ -26,7 +26,11 @@ class Matrix:
             if len(row) != length:
                 raise ValueError("All rows must have the same length")
             
-        self.rows = [Vector(row) for row in rows]
+        self._rows = [Vector(row) for row in rows]
+
+    @property
+    def rows(self):
+        return self._rows
     
     @property
     def shape(self):
@@ -156,3 +160,68 @@ class Matrix:
             Matrix: A new matrix with all elements multiplied by the scalar.
         """
         return self * scalar
+    
+    def __setitem__(self, target:int, new_row: Vector):
+        self._rows[target] = new_row
+    
+    def subtract_row(self, source: int, target: int, mult: float):
+        self[target] = self[target] - self[source] * mult
+
+    def gaussian_elimination(self, b: Optional[Vector] = None) -> 'Matrix':
+        m, n = self.shape
+        for j in range(min(m, n)):
+            if self[j][j] == 0:
+                raise ValueError("0 Pivot not yet supported.")
+            for i in range(j+1, m):
+                mult = self[i][j] / self[j][j]
+                self.subtract_row(j, i, mult)
+                if b != None:
+                    b[i] = b[i] - (mult * b[j])
+        return self
+    
+    def back_substitution(self, b: Vector) -> Vector:
+        m, n = self.shape
+
+        x_data = [0.0] * n
+
+        for i in range(n-1, -1, -1):
+            sum_ax = b[i]
+            for j in range(i+1, n):
+                sum_ax -= self[i][j] * x_data[j]
+            if self[i][i] == 0:
+                raise ValueError("Singular matrix found during backsubstitution.")
+            x_data[i] = sum_ax / self[i][i]
+        return Vector(x_data)
+    
+    def solve(self, b: Vector) -> Vector:
+        """
+        Solves the system Ax = b.
+
+        Args:
+            b (Vector): The RHS of the equation
+        Raises:
+            ValueError: If a 0 pivot is found
+        """
+        self.gaussian_elimination(b)
+
+        return self.back_substitution(b)
+    
+    def copy(self) -> 'Matrix':
+        return Matrix([row.coords[:] for row in self.rows])
+    
+    @property
+    def det(self):
+        """
+        Calculates the determinant using Gaussian Elimination.
+        det(A) = product of pivots in upper triangular form
+        """
+        m, n = self.shape
+        if m != n:
+            raise ValueError("Determinant is only defined for square matrices.")
+        u = self.copy()
+        u.gaussian_elimination()
+        det = 1
+        for i in range(m):
+            det *= u[i][i]
+            
+        return det
