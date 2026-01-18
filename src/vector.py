@@ -45,7 +45,7 @@ class Vector:
 
         Returns: A string representing the vector coordinates.
         """
-        return f"Vector({self.coords})"
+        return f"{self.coords}"
         
     def __eq__(self, v2: 'Vector'):
         """

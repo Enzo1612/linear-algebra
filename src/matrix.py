@@ -167,17 +167,31 @@ class Matrix:
     def subtract_row(self, source: int, target: int, mult: float):
         self[target] = self[target] - self[source] * mult
 
-    def gaussian_elimination(self, b: Optional[Vector] = None) -> 'Matrix':
+    def gaussian_elimination(self, b: Optional[Vector] = None) -> int:
         m, n = self.shape
+        swap_count = 0
         for j in range(min(m, n)):
-            if self[j][j] == 0:
-                raise ValueError("0 Pivot not yet supported.")
+            pivot_row = j
+            max_val = 0.0
+
+            for i in range(j, m):
+                val = abs(self[i][j])
+                if val > max_val:
+                    max_val = val
+                    pivot_row = i
+                
+            if max_val < 1e-10:
+                raise ValueError("Matrix is singular. 0 pivot found everywhere.")
+            
+            if pivot_row != j:
+                self.swap_rows(pivot_row, j, b)
+                swap_count += 1
             for i in range(j+1, m):
                 mult = self[i][j] / self[j][j]
                 self.subtract_row(j, i, mult)
                 if b != None:
                     b[i] = b[i] - (mult * b[j])
-        return self
+        return swap_count
     
     def back_substitution(self, b: Vector) -> Vector:
         m, n = self.shape
@@ -219,9 +233,21 @@ class Matrix:
         if m != n:
             raise ValueError("Determinant is only defined for square matrices.")
         u = self.copy()
-        u.gaussian_elimination()
+        count = u.gaussian_elimination()
         det = 1
         for i in range(m):
             det *= u[i][i]
             
-        return det
+        return det * ((-1) ** count)
+    
+    def swap_rows(self, row1: int, row2: int, b: Optional[Vector] = None):
+        """
+        Swaps row1 and row2 in the matrix.
+        If a vector b is provided, swaps the corresponding elements in b as well.
+        """
+        self[row1], self[row2] = self[row2], self[row1]
+        if b != None:
+            b[row1], b[row2] = b[row2], b[row1]
+            
+
+        
