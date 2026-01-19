@@ -51,32 +51,90 @@ print(B.det)      # -2.0
 
 ### Vector (src/vector.py)
 
-- **`Vector(coords: List[float])`**: Construct from a list of numbers.
-- **`coords: List[float]`**: Property returning the coordinate list.
-- **`__len__()`**: Vector dimension.
-- **`__getitem__(i)` / `__setitem__(i, value)`**: Index access.
-- **`__add__(v)` / `__sub__(v)`**: Element-wise operations (dimension-checked).
-- **`__mul__(scalar)` / `__rmul__(scalar)`**: Scalar multiplication.
-- **`__truediv__(scalar)`**: Scalar division (error on zero).
-- **`dot(v)`**: Dot product (dimension-checked).
-- **`norm`**: Euclidean norm $\|v\|_2$.
-- **`__repr__()`**: Prints the coordinate list (e.g., `[1, 2]`).
+#### Constructors
+
+- **`Vector(coords: List[float])`**: Construct a vector from a list of numbers.
+
+#### Properties
+
+- **`coords`**: List[float] — Returns the coordinate list.
+- **`norm`**: float — Euclidean norm $\|v\|_2 = \sqrt{\sum v_i^2}$.
+
+#### Operators & Arithmetic
+
+- **`v1 + v2`** or **`v + scalar`**: Element-wise addition (vectors must have matching dimensions).
+- **`v1 - v2`** or **`v - scalar`**: Element-wise subtraction (vectors must have matching dimensions).
+- **`v * scalar`** or **`scalar * v`**: Scalar multiplication.
+- **`v / scalar`**: Scalar division (raises `ValueError` if scalar is 0).
+
+#### Accessors & Indexing
+
+- **`v[i]`**: Get the i-th coordinate.
+- **`v[i] = value`**: Set the i-th coordinate.
+- **`len(v)`**: Return the vector dimension.
+
+#### Methods
+
+- **`dot(v2: Vector) -> float`**: Dot product (dimension-checked). Raises `ValueError` if dimensions don't match.
+- **`copy() -> Vector`**: Return a deep copy of the vector.
+- **`check_len(v2: Vector)`**: Verify that `v2` has the same dimension; raises `ValueError` if not.
+
+#### Special Methods
+
+- **`__repr__()`**: String representation (prints coordinate list, e.g., `[1, 2]`).
+- **`__eq__(v2)`**: Check element-wise equality.
 
 ### Matrix (src/matrix.py)
 
-- **`Matrix(rows: List[List[float]])`**: Construct from row lists; all rows must have equal length.
-- **`rows`**: List of `Vector` rows.
-- **`shape`**: Tuple `(m, n)` for `m` rows and `n` columns.
-- **`row(i)` / `col(j)`**: Accessors returning a `Vector`.
-- **`__getitem__(i)` / `__setitem__(i, Vector)`**: Row access and mutation.
-- **Arithmetic**: `+`, `-`, `scalar * M`, `M * scalar`.
-- **Multiplication**: `A @ x` (matrix–vector) and `A @ B` (matrix–matrix).
-- **`swap_rows(i, j, b: Optional[Vector] = None)`**: Swap two rows; also swaps entries of `b` if provided.
-- **`gaussian_elimination(b: Optional[Vector] = None) -> int`**: In-place elimination with partial pivoting. Returns the count of row swaps (used by `det`). If `b` is provided, it is updated in-place to maintain the augmented system.
-- **`back_substitution(b: Vector) -> Vector`**: Solve the upper-triangular system using back substitution.
-- **`solve(b: Vector) -> Vector`**: Convenience method; runs elimination + back substitution and returns `x`.
-- **`copy() -> Matrix`**: Deep copy of the matrix rows.
-- **`det`**: Determinant for square matrices. Creates a copy, runs elimination, multiplies diagonal, and applies `$(-1)^{\text{swap\_count}}$` for row swaps.
+#### Constructors
+
+- **`Matrix(rows: List[List[float]])`**: Construct from row lists; all rows must have equal length. Raises `ValueError` if empty or rows have inconsistent lengths.
+
+#### Properties
+
+- **`rows`**: List[Vector] — Returns the list of row vectors.
+- **`shape`**: Tuple[int, int] — Returns `(m, n)` for `m` rows and `n` columns.
+- **`det`**: float — Determinant for square matrices using Gaussian elimination. Creates a copy, runs elimination, multiplies diagonal elements, and applies sign correction for row swaps. Raises `ValueError` if matrix is not square or is singular.
+- **`transpose`**: Matrix — Returns the transposed matrix (rows become columns).
+
+#### Operators & Arithmetic
+
+- **`A + B`**, **`A + v`**, **`A + scalar`**: Element-wise addition.
+  - With scalar: adds to all elements.
+  - With vector: converts vector to 1×n matrix and adds element-wise.
+  - With matrix: adds element-wise (dimension-checked).
+- **`A - B`**, **`A - v`**, **`A - scalar`**: Element-wise subtraction (same dimension rules as addition).
+- **`A * scalar`** or **`scalar * A`**: Scalar multiplication on all elements.
+- **`A @ x`** (matrix–vector): Row-wise dot product with vector. Returns a Vector. Raises `ValueError` if column count ≠ vector length.
+- **`A @ B`** (matrix–matrix): Classical matrix multiplication. Returns a Matrix. Raises `ValueError` if A's column count ≠ B's row count.
+
+#### Accessors & Indexing
+
+- **`A[i]`**: Get the i-th row as a Vector.
+- **`A[i] = v`**: Set the i-th row to vector `v`.
+- **`A.row(i)`**: Get the i-th row (same as `A[i]`).
+- **`A.col(j)`**: Get the j-th column as a Vector.
+
+#### Methods
+
+- **`copy() -> Matrix`**: Return a deep copy of the matrix.
+- **`check_dim(b: Matrix)`**: Verify that `b` has the same shape; raises `ValueError` if not.
+- **`swap_rows(i, j, b: Optional[Vector] = None)`**: Swap rows i and j. If a vector `b` is provided (used in solving systems), swap corresponding elements in `b` as well.
+- **`subtract_row(source: int, target: int, mult: float)`**: Subtract `mult * row[source]` from `row[target]` (used in elimination).
+- **`gaussian_elimination(b: Optional[Vector] = None) -> int`**: In-place elimination with partial pivoting. Returns the count of row swaps (used for determinant sign correction). If `b` is provided, updates it in-place to maintain the augmented system `[A | b]`.
+- **`back_substitution(b: Vector) -> Vector`**: Solve the upper-triangular system (assumes `A` is already in row-echelon form). Raises `ValueError` if a zero pivot is encountered.
+- **`solve(b: Vector) -> Vector`**: Convenience method to solve `Ax = b`. Calls `gaussian_elimination(b)` followed by `back_substitution(b)`. Raises `ValueError` for singular systems.
+- **`plu_decomposition() -> Tuple[Matrix, Matrix, Matrix]`**: Decompose the matrix `A` into `P @ A = L @ U` using Gaussian elimination with partial pivoting.
+  - Returns `(P, L, U)` where:
+    - **`P`**: Permutation matrix recording row swaps.
+    - **`L`**: Lower triangular matrix with multipliers below diagonal; 1s on diagonal.
+    - **`U`**: Upper triangular matrix with pivots on diagonal.
+  - Raises `ValueError` if not square or singular.
+  - Invariant: `P @ A == L @ U`.
+
+#### Static Methods
+
+- **`Matrix.identity(n: int) -> Matrix`**: Return an `n × n` identity matrix with 1s on diagonal and 0s elsewhere.
 
 ## Design Notes
 
@@ -106,7 +164,5 @@ pytest -q
 
 ## Roadmap
 
-- LU factorization and forward/backward substitution.
 - Support for matrix inverses and rank.
 - Optional tolerance configuration and improved numerical stability controls.
-- More test coverage: matrix–matrix multiplication, solve edge cases, singular detection.

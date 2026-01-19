@@ -71,3 +71,11 @@ def test_transpose_rectangular():
     assert AT[0].coords == [1, 4]
     assert AT[1].coords == [2, 5]
     assert AT[2].coords == [3, 6]
+
+def test_plu_decomposition():
+    A = Matrix([[4, 3], [6, 3]])
+    P, L, U = A.plu_decomposition()
+
+    reconstructed = L @ U
+    expected = P @ A
+    assert reconstructed == expected

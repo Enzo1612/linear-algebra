@@ -1,4 +1,3 @@
-# playground.py
 from src import Matrix
 from src import Vector
 
@@ -25,7 +24,6 @@ C.swap_rows(0, 1, c)
 print(f"Matrix: {[row for row in C.rows]}\n Vector: {c}")
 
 
-# This used to crash. Now it should work.
 D = Matrix([[0, 1], [1, 1]])
 d = Vector([1, 2])
 

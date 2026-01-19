@@ -28,6 +28,20 @@ class Matrix:
             
         self._rows = [Vector(row) for row in rows]
 
+    def __eq__(self, b: 'Matrix') -> bool:
+        """
+        Check if two matrices are equal element-wise.
+
+        Args:
+            b (Matrix): The matrix to compare with
+
+        Returns:
+            bool: True if matrices have same shape and all elements are equals. Else return False.
+        """
+        if self.shape != b.shape:
+            return False
+        return all(row_a == row_b for row_a, row_b in zip(self.rows, b.rows))
+
     @property
     def rows(self):
         return self._rows
@@ -309,6 +323,62 @@ class Matrix:
         self[row1], self[row2] = self[row2], self[row1]
         if b != None:
             b[row1], b[row2] = b[row2], b[row1]
+
+    def plu_decomposition(self) -> tuple['Matrix', 'Matrix', 'Matrix']:
+        """
+        Decomposes the matrix A into PA = LU (LU Factorization with Partial Pivoting).
+
+        Returns:
+            P (Matrix): The permutation matrix recording row swaps.
+            L (Matrix): The lower triangular matrix of multipliers (with 1s on diagonal).
+            U (Matrix): The upper triangular matrix (pivots on diagonal).
+            
+        Raises:
+            ValueError: If the matrix is not square.
+            ValueError: If the matrix is singular (all potential pivots in a column are 0).
+            
+        Invariant:
+            P @ A == L @ U
+        """
+        m, n = self.shape
+        if (m != n):
+            raise ValueError("Matrix must be square!")
+        U = self.copy()
+        L = self.identity(n)
+        P = self.identity(n)
+        for j in range(n):
+            pivot_row = j
+            max_val = 0.0
+            for k in range(j, n):
+                val = abs(U[k][j])
+                if val > max_val:
+                    max_val = val
+                    pivot_row = k
+            if max_val == 0:
+                raise ValueError("Matrix is singular")
+        
+            if j != pivot_row:
+                U.swap_rows(j, pivot_row)
+                P.swap_rows(j, pivot_row)
+
+                for col in range(j):
+                    L[j][col], L[pivot_row][col] = L[pivot_row][col], L[j][col]
+            
+            for i in range(j + 1, n):
+                multiplier = U[i][j] / U[j][j]
+                L[i][j] = multiplier
+                U[i] = U[i] - U[j] * multiplier
+        return P, L, U
+
+
+
+    @staticmethod
+    def identity(n: int) -> 'Matrix':
+        """
+        Returns an identity matrix of size n
+        """
+        return Matrix([[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]) 
+
 
     @property
     def transpose(self) -> 'Matrix':
