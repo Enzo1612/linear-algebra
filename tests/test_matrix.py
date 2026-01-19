@@ -63,3 +63,11 @@ def test_determinant_raises_on_singular():
     S = Matrix([[1, 2], [2, 4]])
     with pytest.raises(ValueError):
         _ = S.det
+
+def test_transpose_rectangular():
+    A = Matrix([[1, 2, 3], [4, 5, 6]])  # 2x3
+    AT = A.transpose                    # 3x2
+    assert AT.shape == (3, 2)
+    assert AT[0].coords == [1, 4]
+    assert AT[1].coords == [2, 5]
+    assert AT[2].coords == [3, 6]

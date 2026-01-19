@@ -1,5 +1,5 @@
 from math import sqrt
-from typing import List
+from typing import List, overload
 
 
 class Vector:
@@ -57,29 +57,61 @@ class Vector:
             return NotImplemented
         return self.coords == v2.coords
 
-    def __add__(self, v2: 'Vector') -> 'Vector':
+    @overload
+    def __add__(self, v2: float) -> 'Vector': ...
+    
+    @overload
+    def __add__(self, v2: 'Vector') -> 'Vector': ...
+    
+    def __add__(self, v2):
         """ 
-        Computes the element-wise sum of two vectors.
+        Computes the element-wise sum with a scalar or another vector.
 
         Args:
-            v2 (Vector): The vector to add. Must have same dimensions.
+            v2 (float | Vector): The value to add.
+                - float: Adds scalar to every element
+                - Vector: Adds element-wise (must have same dimensions)
+        
         Raises:
-            ValueError: If dimensions are not the sames.
+            ValueError: If v2 is a Vector with different dimensions.
+            TypeError: If v2 is not a supported type.
         """
-        self.check_len(v2)
-        return Vector([a + b for a, b in zip(self.coords, v2.coords)])
+        if isinstance(v2, (int, float)):
+            return Vector([a + v2 for a in self.coords])
+        
+        if isinstance(v2, Vector):
+            self.check_len(v2)
+            return Vector([a + b for a, b in zip(self.coords, v2.coords)])
+        
+        raise TypeError(f"Cannot add Vector with {type(v2)}")
 
-    def __sub__(self, v2:'Vector') -> 'Vector':
+    @overload
+    def __sub__(self, v2: float) -> 'Vector': ...
+    
+    @overload
+    def __sub__(self, v2: 'Vector') -> 'Vector': ...
+    
+    def __sub__(self, v2):
         """
-        Computes the element-wise subtraction of two vectors.
+        Computes the element-wise subtraction with a scalar or another vector.
 
         Args:
-            v2 (Vector): The vector to subtract. Must have same dimensions.
+            v2 (float | Vector): The value to subtract.
+                - float: Subtracts scalar from every element
+                - Vector: Subtracts element-wise (must have same dimensions)
+        
         Raises:
-            ValueError: If dimensions are not the same.
+            ValueError: If v2 is a Vector with different dimensions.
+            TypeError: If v2 is not a supported type.
         """
-        self.check_len(v2)
-        return Vector([a - b for a, b in zip(self.coords, v2.coords)])
+        if isinstance(v2, (int, float)):
+            return Vector([a - v2 for a in self.coords])
+        
+        if isinstance(v2, Vector):
+            self.check_len(v2)
+            return Vector([a - b for a, b in zip(self.coords, v2.coords)])
+        
+        raise TypeError(f"Cannot subtract {type(v2)} from Vector")
 
     def __mul__(self, scalar: float) -> 'Vector':
         """

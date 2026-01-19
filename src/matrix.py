@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, overload
 from src.vector import Vector
 
 
@@ -57,6 +57,12 @@ class Matrix:
             j (int): The index of the column.
         """
         return Vector([row[j] for row in self.rows])
+    
+    @overload
+    def __matmul__(self, x:Vector) -> Vector: ...
+
+    @overload
+    def __matmul__(self, x:'Matrix') -> 'Matrix': ...
     
     def __matmul__(self, x):
         """
@@ -118,31 +124,81 @@ class Matrix:
         """
         return self.rows[i]
            
+    @overload
+    def __add__(self, b: float) -> 'Matrix': ...
     
-    def __add__(self, b: 'Matrix') -> 'Matrix':
+    @overload
+    def __add__(self, b: Vector) -> 'Matrix': ...
+    
+    @overload
+    def __add__(self, b: 'Matrix') -> 'Matrix': ...
+    
+    def __add__(self, b):
         """
-        Computes the sum of A_ij with B_ij with i from 0 to the number of rows, j from 0 to the number of cols
+        Computes the sum of matrix with a scalar, vector, or another matrix.
         
         Args:
-            b (Matrix): The matrix to add.
+            b (float | Vector | Matrix): The value to add.
+                - float: Adds scalar to every element
+                - Vector: Converts to row matrix and adds element-wise
+                - Matrix: Adds element-wise
+        
         Raises:
-            ValueError: If the matrices don't have the same dimensions.
+            ValueError: If dimensions don't match for vector/matrix addition.
+            TypeError: If b is not a supported type.
         """
-        self.check_dim(b)
-        return Matrix([row_a + row_b for row_a, row_b in zip(self.rows, b.rows)])
+        if isinstance(b, (int, float)):
+            return Matrix([row + b for row in self.rows])
+        
+        if isinstance(b, Vector):
+            # Convert vector to a 1xn matrix
+            b_matrix = Matrix([b.coords])
+            self.check_dim(b_matrix)
+            return Matrix([row_a + row_b for row_a, row_b in zip(self.rows, b_matrix.rows)])
+        
+        if isinstance(b, Matrix):
+            self.check_dim(b)
+            return Matrix([row_a + row_b for row_a, row_b in zip(self.rows, b.rows)])
+        
+        raise TypeError(f"Cannot add Matrix with {type(b)}")
     
-    def __sub__(self, b: 'Matrix') -> 'Matrix':
+    @overload
+    def __sub__(self, b: float) -> 'Matrix': ...
+    
+    @overload
+    def __sub__(self, b: Vector) -> 'Matrix': ...
+    
+    @overload
+    def __sub__(self, b: 'Matrix') -> 'Matrix': ...
+    
+    def __sub__(self, b):
         """
-        Computes the subtraction of A_ij with B_ij with i from 0 to the number of rows, j from 0 to the number of cols
+        Computes the subtraction of a scalar, vector, or matrix from the matrix.
         
         Args:
-            b (Matrix): The matrix to subtract.
+            b (float | Vector | Matrix): The value to subtract.
+                - float: Subtracts scalar from every element
+                - Vector: Converts to row matrix and subtracts element-wise
+                - Matrix: Subtracts element-wise
+        
         Raises:
-            ValueError: If the matrices don't have the same dimensions.
+            ValueError: If dimensions don't match for vector/matrix subtraction.
+            TypeError: If b is not a supported type.
         """
-        self.check_dim(b)
-
-        return Matrix([row_a - row_b for row_a, row_b in zip(self.rows, b.rows)])
+        if isinstance(b, (int, float)):
+            return Matrix([row - b for row in self.rows])
+        
+        if isinstance(b, Vector):
+            # Convert vector to a 1xn matrix
+            b_matrix = Matrix([b.coords])
+            self.check_dim(b_matrix)
+            return Matrix([row_a - row_b for row_a, row_b in zip(self.rows, b_matrix.rows)])
+        
+        if isinstance(b, Matrix):
+            self.check_dim(b)
+            return Matrix([row_a - row_b for row_a, row_b in zip(self.rows, b.rows)])
+        
+        raise TypeError(f"Cannot subtract {type(b)} from Matrix")
     
     def __mul__(self, scalar: float) -> 'Matrix':
         """Multiply the matrix by a scalar.
@@ -253,6 +309,13 @@ class Matrix:
         self[row1], self[row2] = self[row2], self[row1]
         if b != None:
             b[row1], b[row2] = b[row2], b[row1]
-            
+
+    @property
+    def transpose(self) -> 'Matrix':
+        """
+        Returns the tranpose of the matrix
+        """
+        m, n = self.shape
+        return Matrix([[self[i][j] for i in range(m)] for j in range(n)])
 
         
