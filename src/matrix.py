@@ -28,6 +28,12 @@ class Matrix:
             
         self._rows = [Vector(row) for row in rows]
 
+        self._P = None
+        self._L = None
+        self._U = None
+
+        self._inverse = None
+
     def __eq__(self, b: 'Matrix') -> bool:
         """
         Check if two matrices are equal element-wise.
@@ -340,6 +346,8 @@ class Matrix:
         Invariant:
             P @ A == L @ U
         """
+        if self._P is not None and self._U is not None and self._L is not None:
+            return self._P, self._L, self._U
         m, n = self.shape
         if (m != n):
             raise ValueError("Matrix must be square!")
@@ -368,7 +376,79 @@ class Matrix:
                 multiplier = U[i][j] / U[j][j]
                 L[i][j] = multiplier
                 U[i] = U[i] - U[j] * multiplier
+
+        self._P = P
+        self._U = U
+        self._L = L
         return P, L, U
+    
+    @property
+    def P(self) -> 'Matrix':
+        if self._P is None:
+            self.plu_decomposition()
+        return self._P # type: ignore
+    
+    @property
+    def L(self) -> 'Matrix':
+        if self._L is None:
+            self.plu_decomposition()
+        return self._L # type: ignore
+    
+    @property
+    def U(self) -> 'Matrix':
+        if self._U is None:
+            self.plu_decomposition()
+        return self._U # type: ignore
+    
+    
+    def solve_plu(self, b: 'Vector') -> 'Vector':
+        P, L, U = self.P, self.L, self.U
+        Pb = P @ b
+        m, n = self.shape
+        y = [0.0] * n
+        for j in range(n):
+            y[j] = Pb[j]
+            for i in range(j):
+                y[j] -= L[j][i] * y[i]
+
+        x = [0.0] * n
+        for i in range(n - 1, -1, -1):
+            x[i] = y[i]
+            for j in range(i + 1, n):
+                x[i] -= U[i][j] * x[j]
+
+            if abs(U[i][i]) < 1e-10: # don't compare floats to 0, thanks programming
+                raise ValueError("Singular Matrix")
+            x[i] /= U[i][i]
+        
+        return Vector(x)
+    
+    @property
+    def cols(self) -> List[Vector]:
+        """
+        Returns all columns as a list of Vectors.
+        """
+
+        return [self.col(j) for j in range(self.shape[1])]
+
+    @property
+    def inverse(self) -> 'Matrix':
+        if self._inverse is not None:
+            return self._inverse
+        n = self.shape[1]
+        inv_cols = []
+
+        I = self.identity(n)
+        for row in I.rows:
+            inv_cols.append(self.solve_plu(row))
+
+        inv_rows = []
+        for i in range(n):
+            inv_rows.append([inv_cols[j][i] for j in range(n)])
+
+        self._inverse = Matrix(inv_rows)
+        
+        return self._inverse
 
 
 

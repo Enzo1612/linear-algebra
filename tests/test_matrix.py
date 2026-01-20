@@ -79,3 +79,13 @@ def test_plu_decomposition():
     reconstructed = L @ U
     expected = P @ A
     assert reconstructed == expected
+
+def test_inverse():
+    A = Matrix([[1, 2], [3, 4]])
+    A_inv = A.inverse
+    I = A @ A_inv
+    assert I[0][0] == pytest.approx(1.0)
+    assert I[0][1] == pytest.approx(0.0)
+    
+    assert I[1][0] == pytest.approx(0.0)
+    assert I[1][1] == pytest.approx(1.0)
