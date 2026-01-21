@@ -33,7 +33,7 @@ def test_matmul_dimension_mismatch():
     A = Matrix([[1, 2], [3, 4]]) # 2x2
     v = Vector([1, 2, 3])        # 3x1
     with pytest.raises(ValueError):
-        A @ v
+        A @ v # type: ignore
 
 def test_matrix_matrix_multiplication():
     A = Matrix([[1, 2], [3, 4]])
@@ -89,3 +89,9 @@ def test_inverse():
     
     assert I[1][0] == pytest.approx(0.0)
     assert I[1][1] == pytest.approx(1.0)
+
+def test_rref():
+    A = Matrix([[2, 4], [1, 3]])
+    R = A.rref()
+    assert R[0].coords == pytest.approx([1, 0])
+    assert R[1].coords == pytest.approx([0, 1])

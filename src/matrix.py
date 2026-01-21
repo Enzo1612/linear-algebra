@@ -423,6 +423,58 @@ class Matrix:
         
         return Vector(x)
     
+    def rref(self) -> 'Matrix':
+        """
+        Computes the Reduced Row Echelon Form (RREF) of the matrix.
+        
+        Uses Gaussian elimination with partial pivoting to transform the matrix
+        into RREF, where:
+        - Each pivot is 1
+        - All entries above and below each pivot are 0
+        - Each pivot is to the right of the pivot in the row above
+        
+        Returns:
+            Matrix: A new matrix in reduced row echelon form.
+            
+        Note:
+            This method does not modify the original matrix.
+        """
+        m, n = self.shape
+        RREF = self.copy()
+        pivot_row = 0
+        col = 0
+        while(pivot_row < m and col < n):
+            max_val = 0.0
+            max_row = -1
+
+            for j in range(pivot_row, m):
+                if abs(RREF[j][col]) > abs(max_val):
+                    max_val = RREF[j][col]
+                    max_row = j
+
+            if abs(max_val) < 1e-10:
+                col += 1
+                continue
+            if max_row != pivot_row:
+                RREF.swap_rows(pivot_row, max_row)
+
+            pivot_val = RREF[pivot_row][col]
+            for j in range(n):
+                RREF[pivot_row][j] /= pivot_val
+
+            for i in range(m):
+                if i != pivot_row:
+                    factor = RREF[i][col]
+                    if abs(factor) > 1e-10:
+                        for k in range(col, n):
+                            RREF[i][k] -= factor * RREF[pivot_row][k]
+
+            pivot_row += 1
+            col += 1
+        return RREF
+        
+                
+    
     @property
     def cols(self) -> List[Vector]:
         """
