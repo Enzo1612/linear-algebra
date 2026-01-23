@@ -33,6 +33,9 @@ class Matrix:
         self._U = None
 
         self._inverse = None
+    
+    def apply_func(self, f):
+        return Matrix([[f(x) for x in self.rows]])
 
     def __eq__(self, b: 'Matrix') -> bool:
         """
@@ -47,17 +50,6 @@ class Matrix:
         if self.shape != b.shape:
             return False
         return all(row_a == row_b for row_a, row_b in zip(self.rows, b.rows))
-
-    @property
-    def rows(self):
-        return self._rows
-    
-    @property
-    def shape(self):
-        """
-        Returns the size of the matrix as a tuple (number of rows, number of cols).
-        """
-        return (len(self.rows), len(self.rows[0]))
     
 
     def row(self, i: int) -> Vector:
@@ -304,22 +296,6 @@ class Matrix:
     def copy(self) -> 'Matrix':
         return Matrix([row.coords[:] for row in self.rows])
     
-    @property
-    def det(self):
-        """
-        Calculates the determinant using Gaussian Elimination.
-        det(A) = product of pivots in upper triangular form
-        """
-        m, n = self.shape
-        if m != n:
-            raise ValueError("Determinant is only defined for square matrices.")
-        u = self.copy()
-        count = u.gaussian_elimination()
-        det = 1
-        for i in range(m):
-            det *= u[i][i]
-            
-        return det * ((-1) ** count)
     
     def swap_rows(self, row1: int, row2: int, b: Optional[Vector] = None):
         """
@@ -382,23 +358,7 @@ class Matrix:
         self._L = L
         return P, L, U
     
-    @property
-    def P(self) -> 'Matrix':
-        if self._P is None:
-            self.plu_decomposition()
-        return self._P # type: ignore
-    
-    @property
-    def L(self) -> 'Matrix':
-        if self._L is None:
-            self.plu_decomposition()
-        return self._L # type: ignore
-    
-    @property
-    def U(self) -> 'Matrix':
-        if self._U is None:
-            self.plu_decomposition()
-        return self._U # type: ignore
+  
     
     
     def solve_plu(self, b: 'Vector') -> 'Vector':
@@ -472,6 +432,34 @@ class Matrix:
             pivot_row += 1
             col += 1
         return RREF
+    
+    @property
+    def det(self):
+        """
+        Calculates the determinant using Gaussian Elimination.
+        det(A) = product of pivots in upper triangular form
+        """
+        m, n = self.shape
+        if m != n:
+            raise ValueError("Determinant is only defined for square matrices.")
+        u = self.copy()
+        count = u.gaussian_elimination()
+        det = 1
+        for i in range(m):
+            det *= u[i][i]
+            
+        return det * ((-1) ** count)
+    
+    @property
+    def rows(self):
+        return self._rows
+    
+    @property
+    def shape(self):
+        """
+        Returns the size of the matrix as a tuple (number of rows, number of cols).
+        """
+        return (len(self.rows), len(self.rows[0]))
         
                 
     
@@ -502,6 +490,32 @@ class Matrix:
         
         return self._inverse
 
+    @property
+    def P(self) -> 'Matrix':
+        if self._P is None:
+            self.plu_decomposition()
+        return self._P # type: ignore
+    
+    @property
+    def L(self) -> 'Matrix':
+        if self._L is None:
+            self.plu_decomposition()
+        return self._L # type: ignore
+    
+    @property
+    def U(self) -> 'Matrix':
+        if self._U is None:
+            self.plu_decomposition()
+        return self._U # type: ignore
+    
+    @property
+    def transpose(self) -> 'Matrix':
+        """
+        Returns the tranpose of the matrix
+        """
+        m, n = self.shape
+        return Matrix([[self[i][j] for i in range(m)] for j in range(n)])
+
 
 
     @staticmethod
@@ -512,12 +526,5 @@ class Matrix:
         return Matrix([[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]) 
 
 
-    @property
-    def transpose(self) -> 'Matrix':
-        """
-        Returns the tranpose of the matrix
-        """
-        m, n = self.shape
-        return Matrix([[self[i][j] for i in range(m)] for j in range(n)])
 
         
